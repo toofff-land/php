@@ -5,9 +5,49 @@ on:
     push:
 
 jobs:
-    build:
-        env:
-            GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+    lint-scripts:
+        name: 'Linter all files'
         runs-on: 'ubuntu-latest'
         steps:
-            - uses: 'actions/checkout@v1'
+            -
+                name: 'Checkout'
+                uses: 'actions/checkout@v2'
+                with:
+                    # Full git history is needed to get a proper list of changed files within `super-linter`
+                    fetch-depth: 0
+            -
+                name: Lint Code Base
+                uses: github/super-linter@v4
+                env:
+                    VALIDATE_ALL_CODEBASE: false
+                    VALIDATE_BASH: true
+                    VALIDATE_BASH_EXEC: true
+                    VALIDATE_EDITORCONFIG: true
+                    VALIDATE_GITHUB_ACTIONS: true
+                    VALIDATE_GITLEAKS: true
+                    VALIDATE_JSCPD: true
+                    VALIDATE_MARKDOWN: true
+                    VALIDATE_SHELL_SHFMT: true
+                    VALIDATE_YAML: true
+                    DEFAULT_BRANCH: main
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    build-docker-image:
+        name: 'Build the Docker images'
+        runs-on: 'ubuntu-latest'
+        strategy:
+            matrix:
+                php-version: ["7.4", "8.0", "8.1"]
+        steps:
+            -
+                name: 'Checkout'
+                uses: 'actions/checkout@v2'
+            -
+                name: 'Build Docker images'
+                run: |
+                    set -e -u -x
+                    docker build --tag toofff/php:"${GITHUB_SHA}" src/${{ matrix.php-version }}-cli-alpine
+            -
+                name: 'Remove Docker images'
+                run: |
+                    set -e -u -x
+                    docker image rm toofff/php:"${GITHUB_SHA}"

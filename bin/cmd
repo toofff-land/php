@@ -2,18 +2,20 @@
 set -e -u
 
 _fail() {
-    echo 1>&2 "$1"
-    exit 255
+	echo 1>&2 "$1"
+	exit 255
 }
 
 if [ "$(uname)" == "Darwin" ]; then
-    touch "${HOME}"/.php
-    exec docker run $(compgen -A variable | grep -E -v "^(HOME|JAVA_HOME|LOGNAME|OLDPWD|PATH|SHELL|TMPDIR|USER)$" | awk "{print \"--env\", \$1}") --init --interactive --mount "dst=${HOME},src=timonier-php-home,type=volume,volume-driver=local,volume-opt=device=:${HOME},volume-opt=type=nfs,\"volume-opt=o=addr=host.docker.internal,hard,nfsvers=3,nointr,nolock,rw\"" --mount "dst=/root,src=timonier-php-root,type=volume,volume-driver=local,volume-opt=device=:${HOME},volume-opt=type=nfs,\"volume-opt=o=addr=host.docker.internal,hard,nfsvers=3,nointr,nolock,rw\"" --net host --rm --tty="$([ -t 0 ] && echo "true" || echo "false")" --volume "${HOME}"/.php:/usr/local/etc/php/php.ini:ro --workdir "${PWD}" "${IMAGE:-timonier/php}":"${TAG:-cli}" "$(basename "$0")" "$@"
+	touch "${HOME}/.php"
+	# shellcheck disable=SC2046
+	exec docker run $(compgen -A variable | grep -E -v "^(HOME|JAVA_HOME|LOGNAME|OLDPWD|PATH|SHELL|TMPDIR|USER)$" | awk "{print \"--env\", \$1}") --init --interactive --mount "dst=${HOME},src=toofff-php-home,type=volume,volume-driver=local,volume-opt=device=:${HOME},volume-opt=type=nfs,\"volume-opt=o=addr=host.docker.internal,hard,nfsvers=3,nointr,nolock,rw\"" --mount "dst=/root,src=toofff-php-root,type=volume,volume-driver=local,volume-opt=device=:${HOME},volume-opt=type=nfs,\"volume-opt=o=addr=host.docker.internal,hard,nfsvers=3,nointr,nolock,rw\"" --net host --rm --tty="$([ -t 0 ] && echo "true" || echo "false")" --volume "${HOME}"/.php:/usr/local/etc/php/php.ini:ro --workdir "${PWD}" "${TOOFFF_PHP_DOCKER_IMAGE:-toofff/php}":"${TOOFFF_PHP_DOCKER_TAG:-8.1-cli-alpine}" "$(basename "$0")" "$@"
 fi
 
 if [ "$(uname)" == "Linux" ]; then
-    touch "${HOME}"/.php
-    exec docker run $(compgen -A variable | grep -E -v "^(PATH)$" | awk "{print \"--env\", \$1}") --interactive --net host --rm --tty="$([ -t 0 ] && echo "true" || echo "false")" --user "$(id -u)" --volume /etc/group:/etc/group:ro --volume /etc/localtime:/etc/localtime:ro --volume /etc/passwd:/etc/passwd:ro --volume /etc/timezone:/etc/timezone:ro --volume /run:/run --volume /tmp:/tmp --volume "${HOME}":"${HOME}" --volume "${HOME}"/.php:/usr/local/etc/php/conf.d/default.ini:ro --volume "${PWD}":"${PWD}" --workdir "${PWD}" "${IMAGE:-timonier/php}":"${TAG:-cli}" "$(basename "$0")" "$@"
+	touch "${HOME}/.php"
+	# shellcheck disable=SC2046
+	exec docker run $(compgen -A variable | grep -E -v "^(PATH)$" | awk "{print \"--env\", \$1}") --interactive --net host --rm --tty="$([ -t 0 ] && echo "true" || echo "false")" --user "$(id -u)" --volume /etc/group:/etc/group:ro --volume /etc/localtime:/etc/localtime:ro --volume /etc/passwd:/etc/passwd:ro --volume /etc/timezone:/etc/timezone:ro --volume /run:/run --volume /tmp:/tmp --volume "${HOME}":"${HOME}" --volume "${HOME}"/.php:/usr/local/etc/php/conf.d/default.ini:ro --volume "${PWD}":"${PWD}" --workdir "${PWD}" "${TOOFFF_PHP_DOCKER_IMAGE:-toofff/php}":"${TOOFFF_PHP_DOCKER_TAG:-8.1-cli-alpine}" "$(basename "$0")" "$@"
 fi
 
 _fail "Current OS is not supported."

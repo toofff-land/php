@@ -1,41 +1,39 @@
 #!/bin/bash
-set -e -u -x
+set -e -u
 cd "$(dirname "$0")"
 
 # Check environment
 
 _fail() {
-    echo 1>&2 "$1"
-    echo 1>&2 "Usage: $(basename "$0") [install|uninstall]"
-    exit 255
+	echo 1>&2 "$1"
+	echo 1>&2 "Usage: $(basename "$0") [install|uninstall]"
+	exit 255
 }
 
 if [ "$#" -lt 1 ]; then
-    _fail "Invalid number of arguments."
+	_fail "Invalid number of arguments."
 fi
 
 # Run installer
 
-INSTALL_DIRECTORY="${INSTALL_DIRECTORY:-/usr/local/bin}"
+TOOFFF_PHP_INSTALL_DIRECTORY="${TOOFFF_PHP_INSTALL_DIRECTORY:-/usr/local/bin}"
 
 case "$1" in
-    install)
-        mkdir -p "${INSTALL_DIRECTORY}"
+install)
+	mkdir -p "${TOOFFF_PHP_INSTALL_DIRECTORY}"
 
-        if [ -t 0 ]; then
-            cp cmd "${INSTALL_DIRECTORY}"/php
-        else
-            curl --location --output "${INSTALL_DIRECTORY}"/php "https://github.com/timonier/php/raw/master/bin/cmd"
-        fi
+	if [ -t 0 ]; then
+		cp cmd "${TOOFFF_PHP_INSTALL_DIRECTORY}/php"
+	else
+		curl --location --output "${TOOFFF_PHP_INSTALL_DIRECTORY}/php" "https://github.com/toofff-land/php/raw/main/bin/cmd"
+	fi
 
-        chmod +x "${INSTALL_DIRECTORY}"/php
-        ;;
-
-    uninstall)
-        rm -f "${INSTALL_DIRECTORY}"/php
-        ;;
-
-    *)
-        _fail "Argument \"$1\" is invalid."
-        ;;
+	chmod +x "${TOOFFF_PHP_INSTALL_DIRECTORY}/php"
+	;;
+uninstall)
+	rm --force "${TOOFFF_PHP_INSTALL_DIRECTORY}/php"
+	;;
+*)
+	_fail "Argument \"$1\" is invalid."
+	;;
 esac
