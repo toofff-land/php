@@ -87,15 +87,21 @@ php --version
 
 In addition to the basic PHP ones, we have enabled a few more:
 
+* amqp
 * apcu
 * apfd
+* exif
+* gd
+* imagick
 * intl
 * opcache
 * pdo_mysql
 * pdo_pgsql
 * pgsql
+* redis
 * xdebug
 * xml
+* xsl
 * zip
 
 __Note 1__: Here is the [list of available PHP extensions](https://php-ext.com/)
