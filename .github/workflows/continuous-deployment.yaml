@@ -17,17 +17,17 @@ jobs:
                 php-version: ["7.4", "8.0", "8.1"]
         steps:
             -
-                name: 'Checkout'
-                uses: 'actions/checkout@v2'
+                name: "[GITHUB] Checkout"
+                uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # version 3.0.2
             -
-                name: Login to Docker Hub
-                uses: docker/login-action@v1
+                name: "[DOCKER] Login to Docker Hub"
+                uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # version 2.0.0
                 with:
                     username: ${{ secrets.DOCKER_HUB_USERNAME }}
                     password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
             -
-                name: Build and push
-                uses: docker/build-push-action@v2
+                name: "[DOCKER] Build & Push"
+                uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94 # version 3.1.1
                 with:
                     context: ./src/${{ matrix.php-version }}-cli-alpine
                     push: true

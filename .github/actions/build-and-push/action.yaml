@@ -1,0 +1,91 @@
+name: "Build & Push"
+description: "Specific action to build & push Docker images"
+
+inputs:
+    GITHUB_ACTOR:
+        description: "Github Actor"
+        required: true
+    GITHUB_SHA:
+        description: "Github SHA"
+        required: true
+    GITHUB_TOKEN:
+        description: "Github Token"
+        required: true
+    METADATA_LABELS:
+        description: "Docker labels"
+        required: true
+    METADATA_TAGS:
+        description: "Docker tags"
+        required: true
+    METADATA_VERSION:
+        description: "Docker version"
+        required: true
+    PHP_VERSION:
+        description: "Number of the version of PHP"
+        required: true
+    REGISTRY:
+        description: "Registry chosen (default: ghcr.io)"
+        default: "ghcr.io"
+        required: false
+
+runs:
+    using: "composite"
+    steps:
+        -
+            name: "[DOCKER] Set up Docker Buildx"
+            uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6 # version 2.0.0
+            id: buildx
+            with:
+                install: true
+        -
+            name: "[GITHUB] Cache Docker Layers"
+            uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # version 3.0.8
+            with:
+                path: /tmp/.buildx-cache
+                key: php-${{ inputs.PHP_VERSION }}-buildx-${{ inputs.GITHUB_SHA }}
+                restore-keys: |
+                    php-${{ inputs.PHP_VERSION }}-buildx-
+        -
+            name: "[DOCKER] Login to GitHub Container Registry"
+            uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # version 2.0.0
+            with:
+                registry: ${{ inputs.REGISTRY }}
+                username: ${{ inputs.GITHUB_ACTOR }}
+                password: ${{ inputs.GITHUB_TOKEN }}
+        -
+            # yamllint disable rule:line-length
+            name: "[SHELL] Check if the docker image is in life"
+            shell: sh
+            id: check-docker-image
+            run: |
+                isVersionExists=`(curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ inputs.GITHUB_TOKEN }}" https://api.github.com/orgs/toofff-land/packages/container/php/versions | grep "${{ inputs.METADATA_VERSION }}") && echo true || echo false`
+                echo '::set-output name=IS_VERSION_EXISTS::'$isVersionExists
+            # yamllint enable rule:line-length
+        -
+            name: "[OSS] Remove previous image"
+            uses: bots-house/ghcr-delete-image-action@22bf76ed038fa077092ceeaab338c0bb6878f374 # version 1.0.1
+            if: steps.check-docker-image.outputs.IS_VERSION_EXISTS != 'false'
+            with:
+                owner: toofff-land
+                name: php
+                token: ${{ inputs.GITHUB_TOKEN }}
+                tag: ${{ inputs.METADATA_VERSION }}
+        -
+            name: "[DOCKER] Build & Push"
+            uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94 # version 3.1.1
+            with:
+                context: ./src/${{ inputs.PHP_VERSION }}-cli-alpine
+                push: true
+                labels: ${{ inputs.METADATA_LABELS }}
+                tags: ${{ inputs.METADATA_TAGS }}
+                cache-from: type=local,src=/tmp/.buildx-cache
+                cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        -
+            # Temp fix
+            # https://github.com/docker/build-push-action/issues/252
+            # https://github.com/moby/buildkit/issues/1896
+            name: "[SHELL] Move cache"
+            shell: sh
+            run: |
+                rm -rf /tmp/.buildx-cache
+                mv /tmp/.buildx-cache-new /tmp/.buildx-cache
