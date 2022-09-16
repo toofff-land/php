@@ -1,0 +1,42 @@
+name: "Metadata"
+description: "Specific action to generate Docker metadata"
+
+inputs:
+    PHP_VERSION:
+        description: "Number of the version of PHP"
+        required: true
+    REGISTRY:
+        description: "Registry chosen (default: ghcr.io)"
+        default: "ghcr.io"
+        required: false
+
+outputs:
+    labels:
+        description: "Labels"
+        value: ${{ steps.metadata.outputs.labels }}
+    tags:
+        description: "Tags"
+        value: ${{ steps.metadata.outputs.tags }}
+    version:
+        description: "Version"
+        value: ${{ steps.metadata.outputs.version }}
+
+runs:
+    using: "composite"
+    steps:
+        -
+            name: "[DOCKER] Setting up metadata"
+            id: metadata
+            uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a # version 4.0.1
+            with:
+                images: |
+                    ${{ inputs.REGISTRY }}/toofff-land/php
+                labels: |
+                    org.opencontainers.image.title=php-${{ inputs.PHP_VERSION }}-cli-alpine
+                    org.opencontainers.image.description=The PHP Interpreter
+                    org.opencontainers.image.url=https://github.com/toofff-land/php
+                    org.opencontainers.image.source=https://github.com/toofff-land/php
+                    org.opencontainers.image.version=pre-alpha
+                    org.opencontainers.image.licenses=MIT
+                tags: |
+                    type=ref,prefix=${{ inputs.PHP_VERSION }}-cli-alpine-pr-,event=pr

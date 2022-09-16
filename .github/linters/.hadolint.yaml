@@ -1,0 +1,9 @@
+failure-threshold: warning
+label-schema:
+    author: Toofff
+    contact: toofff.development@gmail.com
+    documentation: https://github.com/toofff-land/php/blob/main/README.md
+    license: MIT
+strict-labels: true
+trustedRegistries:
+    - docker.io

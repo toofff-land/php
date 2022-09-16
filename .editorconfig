@@ -33,6 +33,6 @@ indent_style = tab
 indent_size = 4
 indent_style = tab
 
-[{cmd,installer}]
+[{cmd,installer,*.sh}]
 indent_size = 4
 indent_style = tab
